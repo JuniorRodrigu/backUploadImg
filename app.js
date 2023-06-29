@@ -1,37 +1,50 @@
 const express = require('express');
-var cors = require('cors');
+const cors = require('cors');
+const multer = require('multer');
 
 const app = express();
-const uploadUser = require('./middlewares/uploadImage');
 
-app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE");
-    res.header("Access-Control-Allow-Headers", "X-PINGOTHER, Content-Type, Authorization");
-    app.use(cors());
-    next();
+app.use(cors());
+
+// Configurar o multer para armazenar as imagens no diretório 'uploads'
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  },
 });
 
-app.post("/upload-image", uploadUser.single('image'), async (req, res) => {
+const upload = multer({ storage: storage });
 
-    if (req.file) {
-        //console.log(req.file);
-        return res.json({
-            erro: false,
-            mensagem: "Upload realizado com sucesso!"
-        });
-    }
+// Rota GET para testar o servidor
+app.get('/', (req, res) => {
+  res.send('Olá, mundo!');
+});
 
+// Rota POST para upload de imagem
+app.post('/upload-image', upload.single('image'), (req, res) => {
+  // Verificar se foi enviado um arquivo de imagem
+  if (!req.file) {
     return res.status(400).json({
-        erro: true,
-        mensagem: "Erro: Upload não realizado com sucesso, necessário enviar uma imagem PNG ou JPG!"
+      error: true,
+      message: 'Nenhuma imagem foi enviada.',
     });
+  }
 
+  // Aqui você pode realizar a lógica de processamento e armazenamento da imagem
+  // Por exemplo, você pode renomear o arquivo, movê-lo para outro diretório, salvar informações no banco de dados, etc.
 
-
+  // Retornar uma resposta de sucesso
+  return res.json({
+    success: true,
+    message: 'Imagem enviada com sucesso.',
+    filename: req.file.filename,
+  });
 });
 
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 3000;
 app.listen(port, () => {
-    console.log(`Servidor iniciado na porta ${port}`);
+  console.log(`Servidor rodando na porta ${port}`);
 });
