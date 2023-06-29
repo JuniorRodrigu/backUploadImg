@@ -31,6 +31,7 @@ app.post("/upload-image", uploadUser.single('image'), async (req, res) => {
 
 });
 
-app.listen(8080, () => {
-    console.log("Servidor iniciado na porta 8080: http://localhost:8080");
+const port = process.env.PORT || 8080;
+app.listen(port, () => {
+    console.log(`Servidor iniciado na porta ${port}`);
 });
